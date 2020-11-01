@@ -7,8 +7,10 @@
 // Precisamos separar as preocupações e refatorar.
 
 // import { isEqual } from 'date-fns'
-import { EntityRepository, Repository } from 'typeorm'
-import Appointment from '../models/Appointment'
+import { EntityRepository, getRepository, Repository } from 'typeorm'
+import IAppointmentsRepository from '@modules/appointments/repositories/IAppointmentsRepository'
+import ICreateAppointmentDTO from '@modules/appointments/dtos/ICreateAppointmentDTO'
+import Appointment from '../entities/Appointment'
 
 // utilizar o padrão do type ORM
 /*
@@ -17,23 +19,36 @@ interface CreateAppointmentDTO {
   date: Date
 } */
 
-@EntityRepository(Appointment)
-class AppointmentsRepository extends Repository<Appointment> {
-  /* private appointments: Appointment[]
+// @EntityRepository(Appointment)
+class AppointmentsRepository
+  // extends Repository<Appointment>
+  implements IAppointmentsRepository {
+  private ormRepository: Repository<Appointment>
 
   constructor() {
-    this.appointments = []
-  } */
+    this.ormRepository = getRepository(Appointment)
+  }
 
-  public async findByDate(date: Date): Promise<Appointment | null> {
+  public async findByDate(date: Date): Promise<Appointment | undefined> {
     /* const findAppointment = this.appointments.find(appointment =>
       isEqual(date, appointment.date),
     ) */
-    const findAppointment = await this.findOne({
+    const findAppointment = await this.ormRepository.findOne({
       where: { date },
     })
 
-    return findAppointment || null
+    return findAppointment
+  }
+
+  public async create({
+    provider_id,
+    date,
+  }: ICreateAppointmentDTO): Promise<Appointment> {
+    const appointment = this.ormRepository.create({ provider_id, date })
+
+    await this.ormRepository.save(appointment)
+
+    return appointment
   }
 
   // metodos all e create já tem por padrão no typeORM
