@@ -1,9 +1,9 @@
-import { hash } from 'bcryptjs'
 // import { getRepository } from 'typeorm'
 import AppError from '@shared/errors/AppError'
 import { injectable, inject } from 'tsyringe'
 import User from '../infra/typeorm/entities/User'
 import IUsersRepository from '../repositories/IUsersRepository'
+import IHashProvider from '../providers/HashProvider/models/IHashProvider'
 
 interface IRequest {
   name: string
@@ -16,6 +16,9 @@ class CreateUserService {
   constructor(
     @inject('UsersRepository')
     private usersRepository: IUsersRepository,
+
+    @inject('HashProvider')
+    private hashProvider: IHashProvider,
   ) {}
 
   public async execute({ name, email, password }: IRequest): Promise<User> {
@@ -32,7 +35,7 @@ class CreateUserService {
     }
 
     // encrypt password
-    const hashedPassword = await hash(password, 8)
+    const hashedPassword = await this.hashProvider.generateHash(password)
 
     // é um método sync que cria apenas a instancia da classe de usuarios, não salva no banco
     const user = await this.usersRepository.create({

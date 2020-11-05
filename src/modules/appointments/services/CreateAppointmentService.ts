@@ -31,11 +31,9 @@ interface IRequest {
 
 @injectable()
 class CreateAppointmentService {
-  private appointmentsRepository: IAppointmentsRepository
-
   constructor(
     @inject('AppointmentsRepository')
-    private appointmentRepository: IAppointmentsRepository,
+    private appointmentsRepository: IAppointmentsRepository,
   ) {}
 
   // responsabilidade única
