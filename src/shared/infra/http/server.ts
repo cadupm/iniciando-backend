@@ -15,7 +15,7 @@ const app = express()
 
 app.use(cors())
 app.use(express.json())
-app.use('/files', express.static(uploadConfig.directory))
+app.use('/files', express.static(uploadConfig.uploadsFolder))
 app.use(routes)
 // tratativa dos errors tem que ser depois das rotas. Middleware de tratamento de erros: 4 parametros
 app.use((err: Error, request: Request, response: Response, _: NextFunction) => {
