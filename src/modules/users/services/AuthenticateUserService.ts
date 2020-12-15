@@ -48,7 +48,7 @@ class AuthenticateUserService {
     )
 
     if (!passwordMatched) {
-      throw new AppError('Inccorect email/password combination.', 401)
+      throw new AppError('Incorrect email/password combination.', 401)
     }
 
     // Chegou até aqui, usuário autenticado

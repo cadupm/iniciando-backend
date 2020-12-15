@@ -22,16 +22,10 @@ class CreateUserService {
   ) {}
 
   public async execute({ name, email, password }: IRequest): Promise<User> {
-    // utilizaremos apenas os metodos padroes: create, update, find, findOne, etc
-    // Então usaremos o repository do typeorm que é o padrao
-    // const usersRepository = getRepository(User)
-
-    // antes de criar um usuário vamos fazer as verificacoes (regras de negócio)
-    // checar se um usuário existe praquele email
     const checkUserExists = await this.usersRepository.findByEmail(email)
 
     if (checkUserExists) {
-      throw new AppError('Email adress already used.')
+      throw new AppError('Email address already used.')
     }
 
     // encrypt password
