@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 // Repositório que tem a responsabilidade de entregar os dados, como salvar, criar
 // A rota não deve a responsabilidade de se conectar com a fonte de dados da nossa aplicação e sim o repositório
 // E o model tem a responsabilidade de tipagem dos dados que irão ser requeridos
@@ -7,9 +8,11 @@
 // Precisamos separar as preocupações e refatorar.
 
 // import { isEqual } from 'date-fns'
-import { EntityRepository, getRepository, Repository } from 'typeorm'
+import { EntityRepository, getRepository, Raw, Repository } from 'typeorm'
 import IAppointmentsRepository from '@modules/appointments/repositories/IAppointmentsRepository'
 import ICreateAppointmentDTO from '@modules/appointments/dtos/ICreateAppointmentDTO'
+import IFindAllInMonthFromProviderDTO from '@modules/appointments/dtos/IFindAllInMonthFromProviderDTO'
+import IFindAllInDayFromProviderDTO from '@modules/appointments/dtos/IFindAllInDayFromProviderDTO'
 import Appointment from '../entities/Appointment'
 
 // utilizar o padrão do type ORM
@@ -40,11 +43,56 @@ class AppointmentsRepository
     return findAppointment
   }
 
+  public async findAllInMonthFromProvider({
+    provider_id,
+    month,
+    year,
+  }: IFindAllInMonthFromProviderDTO): Promise<Appointment[]> {
+    const parsedMonth = String(month).padStart(2, '0')
+
+    const appointments = await this.ormRepository.find({
+      where: {
+        provider_id,
+        date: Raw(
+          dateFieldName =>
+            `to_char(${dateFieldName}, 'MM-YYYY') = '${parsedMonth}-${year}'`,
+        ),
+      },
+    })
+    return appointments
+  }
+
+  public async findAllInDayFromProvider({
+    provider_id,
+    day,
+    month,
+    year,
+  }: IFindAllInDayFromProviderDTO): Promise<Appointment[]> {
+    const parsedDay = String(day).padStart(2, '0')
+    const parsedMonth = String(month).padStart(2, '0')
+
+    const appointments = await this.ormRepository.find({
+      where: {
+        provider_id,
+        date: Raw(
+          dateFieldName =>
+            `to_char(${dateFieldName}, 'DD-MM-YYYY') = '${parsedDay}-${parsedMonth}-${year}'`,
+        ),
+      },
+    })
+    return appointments
+  }
+
   public async create({
     provider_id,
+    user_id,
     date,
   }: ICreateAppointmentDTO): Promise<Appointment> {
-    const appointment = this.ormRepository.create({ provider_id, date })
+    const appointment = this.ormRepository.create({
+      provider_id,
+      user_id,
+      date,
+    })
 
     await this.ormRepository.save(appointment)
 
