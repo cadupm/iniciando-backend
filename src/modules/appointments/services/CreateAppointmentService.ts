@@ -1,10 +1,11 @@
 /* eslint-disable camelcase */
-import { startOfHour, isBefore, getHours } from 'date-fns'
+import { startOfHour, isBefore, getHours, format } from 'date-fns'
 import { injectable, inject } from 'tsyringe'
 // import { getCustomRepository } from 'typeorm'
 
 import AppError from '@shared/errors/AppError'
 
+import INotificationsRepository from '@modules/notifications/repositories/INotificationsRepository'
 import Appointment from '../infra/typeorm/entities/Appointment'
 // import AppointmentsRepository from '../infra/typeorm/repositories/AppointmentsRepository'
 
@@ -35,6 +36,9 @@ class CreateAppointmentService {
   constructor(
     @inject('AppointmentsRepository')
     private appointmentsRepository: IAppointmentsRepository,
+
+    @inject('NotificationsRepository')
+    private notificationsRepository: INotificationsRepository,
   ) {}
 
   // responsabilidade única
@@ -73,6 +77,13 @@ class CreateAppointmentService {
       provider_id,
       user_id,
       date: appointmentDate,
+    })
+
+    const dateFormatted = format(appointmentDate, "dd/MM/yyyy 'às' HH:mm'h'")
+
+    await this.notificationsRepository.create({
+      recipient_id: provider_id,
+      content: `Novo agendamento para dia ${dateFormatted}`,
     })
 
     // salva a instancia criada previamente no banco de dados
